@@ -72,9 +72,36 @@ public class CheckersData {
      * and all such squares in the last three rows contain red squares.
      */
     void setUpGame() {
-        // TODO
-    	// 
-    	// Set up the board with pieces BLACK, RED, and EMPTY
+        // Empties board
+        for(int i = 0; i < 8; i++)
+        {
+            for(int j = 0; j < 8; j++)
+            {
+                board[i][j] = 0;
+            }
+        }
+        // Places black mens
+        for(int i = 0; i < 3; i++)
+        {
+            for(int j = 0; j < 8; j++)
+            {
+                if(i % 2 == j % 2)
+                {
+                    board[i][j] = 3;
+                }
+            }
+        }
+        // Place red mens
+        for(int i = 5; i < 8; i++)
+        {
+            for(int j = 0; j < 8; j++)
+            {
+                if(i % 2 == j % 2)
+                {
+                    board[i][j] = 1;
+                }
+            }
+        }
     }
 
 
@@ -120,6 +147,22 @@ public class CheckersData {
         // 1. move the piece from (fromRow,fromCol) to (toRow,toCol)
         // 2. if this move is a jump, remove the captured piece
         // 3. if the piece moves into the kings row on the opponent's side of the board, crowned it as a king
+
+        int men_color = board[fromRow][fromCol];
+
+        if(fromRow - toRow == 2 || fromRow - toRow == -2) // if move is jump
+        {
+            int dead_men_row = Math.max(fromRow, toRow) + 1;
+            int dead_men_col = Math.max(fromCol, toCol) + 1;
+            board[toRow][toCol] = board[fromRow][fromCol];
+            board[dead_men_row][dead_men_col] = 0;
+            board[fromRow][fromCol] = 0;
+        }
+        else
+        {
+            board[toRow][toCol] = board[fromRow][fromCol];
+            board[fromRow][fromCol] = 0;
+        }
     }
 
     /**
