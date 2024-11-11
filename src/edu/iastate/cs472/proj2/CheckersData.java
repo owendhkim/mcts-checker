@@ -1,5 +1,7 @@
 package edu.iastate.cs472.proj2;
 
+import java.util.ArrayList;
+
 /**
  * An object of this class holds data about a game of checkers.
  * It knows what kind of piece is on each square of the checkerboard.
@@ -72,36 +74,46 @@ public class CheckersData {
      * and all such squares in the last three rows contain red squares.
      */
     void setUpGame() {
-        // Empties board
-        for(int i = 0; i < 8; i++)
-        {
-            for(int j = 0; j < 8; j++)
-            {
-                board[i][j] = 0;
-            }
-        }
-        // Places black mens
-        for(int i = 0; i < 3; i++)
-        {
-            for(int j = 0; j < 8; j++)
-            {
-                if(i % 2 == j % 2)
-                {
-                    board[i][j] = 3;
-                }
-            }
-        }
-        // Place red mens
-        for(int i = 5; i < 8; i++)
-        {
-            for(int j = 0; j < 8; j++)
-            {
-                if(i % 2 == j % 2)
-                {
-                    board[i][j] = 1;
-                }
-            }
-        }
+//        // Empties board
+//        for(int i = 0; i < 8; i++)
+//        {
+//            for(int j = 0; j < 8; j++)
+//            {
+//                board[i][j] = 0;
+//            }
+//        }
+//        // Places black mens
+//        for(int i = 0; i < 3; i++)
+//        {
+//            for(int j = 0; j < 8; j++)
+//            {
+//                if(i % 2 == j % 2)
+//                {
+//                    board[i][j] = 3;
+//                }
+//            }
+//        }
+//        // Place red mens
+//        for(int i = 5; i < 8; i++)
+//        {
+//            for(int j = 0; j < 8; j++)
+//            {
+//                if(i % 2 == j % 2)
+//                {
+//                    board[i][j] = 1;
+//                }
+//            }
+//        }
+        board = new int[][]{
+                {0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0},
+                {3, 0, 0, 0, 0, 0, 0, 0},
+                {0, 1, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 1, 0, 1, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0},
+                {0, 0, 0, 0, 0, 0, 0, 0}
+        };
     }
 
 
@@ -148,20 +160,30 @@ public class CheckersData {
         // 2. if this move is a jump, remove the captured piece
         // 3. if the piece moves into the kings row on the opponent's side of the board, crowned it as a king
 
-        int men_color = board[fromRow][fromCol];
+        int man = board[fromRow][fromCol];
 
         if(fromRow - toRow == 2 || fromRow - toRow == -2) // if move is jump
         {
-            int dead_men_row = Math.max(fromRow, toRow) + 1;
-            int dead_men_col = Math.max(fromCol, toCol) + 1;
+            int dead_man_row = Math.min(fromRow, toRow) + 1;
+            int dead_man_col = Math.min(fromCol, toCol) + 1;
             board[toRow][toCol] = board[fromRow][fromCol];
-            board[dead_men_row][dead_men_col] = 0;
+            board[dead_man_row][dead_man_col] = 0;
             board[fromRow][fromCol] = 0;
         }
         else
         {
             board[toRow][toCol] = board[fromRow][fromCol];
             board[fromRow][fromCol] = 0;
+        }
+
+        // if on opponent's kings row, crown it
+        if(man == RED && toRow == 0)
+        {
+            board[toRow][toCol] = RED_KING;
+        }
+        if(man == BLACK && toRow == 7)
+        {
+            board[toRow][toCol] = BLACK_KING;
         }
     }
 
@@ -178,6 +200,10 @@ public class CheckersData {
      */
     CheckersMove[] getLegalMoves(int player) {
         // TODO
+        if(player == RED)
+        {
+
+        }
         return null;
     }
 
@@ -188,8 +214,8 @@ public class CheckersData {
      * jumps are possible, null is returned.  The logic is similar
      * to the logic of the getLegalMoves() method.
      *
-     * Note that each CheckerMove may contain multiple jumps. 
-     * Each move returned in the array represents a sequence of jumps 
+     * Note that each CheckerMove may contain multiple jumps.
+     * Each move returned in the array represents a sequence of jumps
      * until no further jump is allowed.
      *
      * @param player The player of the current jump, either RED or BLACK.
@@ -197,8 +223,108 @@ public class CheckersData {
      * @param col    col index of the start square.
      */
     CheckersMove[] getLegalJumpsFrom(int player, int row, int col) {
-        // TODO 
-        return null;
+        // TODO
+        ArrayList<CheckersMove> allJumps = new ArrayList<>();
+        CheckersMove currentMove = new CheckersMove();
+        currentMove.addMove(row, col);
+        findJumps(player, row, col, currentMove, allJumps);
+
+        ArrayList<CheckersMove> validJumps = new ArrayList<>();
+        for (CheckersMove move : allJumps) {
+            if (move.rows.size() > 1) { // Ensure at least one jump occurred
+                CheckersMove actualMove = new CheckersMove();
+                // Add all positions from the move sequence
+                for (int i = 0; i < move.rows.size(); i++) {
+                    actualMove.addMove(move.rows.get(i), move.cols.get(i));
+                }
+                validJumps.add(actualMove);
+            }
+        }
+
+        if (validJumps.isEmpty()) {
+            return null; // No jumps available
+        }
+
+        return validJumps.toArray(new CheckersMove[0]);
+    }
+
+    /**
+     * Recursively finds all possible jump sequences from the current position.
+     *
+     * @param player     The player making the jump.
+     * @param fromRow        The current row position of the piece.
+     * @param fromCol        The current column position of the piece.
+     * @param currentMove The current sequence of moves being built.
+     * @param allJumps    The list collecting all complete jump sequences.
+     */
+    private void findJumps(int player, int fromRow, int fromCol, CheckersMove currentMove, ArrayList<CheckersMove> allJumps)
+    {
+        boolean canJump = false;
+        int man = board[fromRow][fromCol];
+
+        int[][] jumpDirections;
+        if(player == RED_KING || player == BLACK_KING)
+        {
+            jumpDirections = new int[][] {{-1,-1}, {-1, 1}, {1, -1}, {1, 1}};
+        }
+        else if(player == RED)
+        {
+            jumpDirections = new int[][] {{-1,-1}, {-1, 1}};
+        }
+        else
+        {
+            jumpDirections = new int[][] {{1, -1}, {1, 1}};
+        }
+
+        for(int[] dir : jumpDirections)
+        {
+            int midRow = fromRow + dir[0];
+            int midCol = fromCol + dir[1];
+            int toRow = fromRow + (2 * dir[0]);
+            int toCol = fromCol + (2 * dir[1]);
+
+            if(isWithinBounds(toRow, toCol))
+            {
+                int midMan = board[midRow][midCol];
+                if(isOppPiece(player, midMan) && board[toRow][toCol] == EMPTY)
+                {
+                    makeMove(fromRow, fromCol, toRow, toCol);
+                    currentMove.addMove(toRow, toCol);
+                    findJumps(player, toRow, toCol, currentMove.clone(), allJumps);
+                    board[toRow][toCol] = EMPTY;
+                    board[fromRow][fromCol] = man;
+                    board[midRow][midCol] = midMan;
+
+                    currentMove.rows.removeLast();
+                    currentMove.cols.removeLast();
+                }
+            }
+        }
+
+        // If no further jumps are possible and at least one jump has been made, add the move sequence
+        if (!canJump && currentMove.rows.size() > 1)
+        {
+            allJumps.add(currentMove.clone());
+        }
+
+    }
+
+    private boolean isOppPiece(int player, int piece)
+    {
+        if (player == RED || player == RED_KING)
+        {
+            return piece == BLACK || piece == BLACK_KING;
+        }
+        else if (player == BLACK || player == BLACK_KING)
+        {
+            return piece == RED || piece == RED_KING;
+        }
+        return false;
+    }
+
+    private boolean isWithinBounds(int row, int col)
+    {
+        return row >= 0 && row < 8 && col >= 0 && col < 8;
     }
 
 }
