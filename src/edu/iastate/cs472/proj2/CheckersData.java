@@ -24,7 +24,7 @@ public class CheckersData implements Cloneable
 
 
     int[][] board;  // board[r][c] is the contents of row r, column c.
-
+    int drawcount = 40;
 
     /**
      * Constructor.  Create the board and set it up for a new game.

@@ -6,6 +6,10 @@ package edu.iastate.cs472.proj2;
  *
  */
 
+import java.util.ArrayList;
+import java.util.Random;
+
+
 /**
  * This class implements the Monte Carlo tree search method to find the best
  * move at the current state.
@@ -13,7 +17,8 @@ package edu.iastate.cs472.proj2;
 public class MonteCarloTreeSearch extends AdversarialSearch
 {
     private static final int NUM_ITERATIONS = 1000;
-	/**
+    Random rand = new Random();
+    /**
      * The input parameter legalMoves contains all the possible moves.
      * It contains four integers:  fromRow, fromCol, toRow, toCol
      * which represents a move from (fromRow, fromCol) to (toRow, toCol).
@@ -40,58 +45,130 @@ public class MonteCarloTreeSearch extends AdversarialSearch
         if (legalMoves == null || legalMoves.length == 0) {
             return null; // No legal moves available
         }
-        MCNode<CheckersData> rootNode = new MCNode<>(board.clone(), null, null);
-        for (int i = 0; i < NUM_ITERATIONS; i++) {
+        MCNode<CheckersData> root = new MCNode<>(board.clone(), null, null);
+        for (int i = 0; i < 5; i++) {
             // Step 1: Selection - Start from root and select a promising node
-            MCNode<CheckersData> selectedNode = select(rootNode);
+            MCNode<CheckersData> leaf = select(root);
 
             // Step 2: Expansion - Add a child node for an untried move
-            MCNode<CheckersData> expandedNode = expand(selectedNode);
+            MCNode<CheckersData> child = expand(leaf);
 
             // Step 3: Simulation - Perform a random playout from the expanded node
-            boolean simulationResult = simulate(expandedNode);
+            int simulationResult = simulate(child);
 
             // Step 4: Backpropagation - Update statistics along the path
-            backpropagate(expandedNode, simulationResult);
+            backpropagate(child, simulationResult);
         }
 
         // After all iterations, return the best move based on visit count or win rate
-        return bestMove(rootNode);
+        return bestMove(root);
     }
 
     private MCNode<CheckersData> select(MCNode<CheckersData> node)
     {
-        while (!node.getChildren().isEmpty() && node.isFullyExpanded(legalMoves(node.getState())))
+        if(node.isLeaf())
         {
-            node = node.getChildWithMaxUCT();
+            return node;
         }
-        return node; // Return a node that is either a leaf or not fully expanded
+        double bestUCT = 0.0;
+        MCNode<CheckersData> bestChild = null;
+        for(MCNode<CheckersData> child : node.getChildren())
+        {
+            double childUTC = child.getUCTScore();
+            if(childUTC > bestUCT)
+            {
+                bestUCT = child.getUCTScore();
+                bestChild = child;
+            }
+        }
+        return select(bestChild);
     }
 
-    private MCNode<CheckersData> expand(MCNode<CheckersData> node) {
+    private MCNode<CheckersData> expand(MCNode<CheckersData> leaf)
+    {
         // Get all possible legal moves from this node’s state
-        CheckersMove[] possibleMoves = legalMoves(node.getState());
+        setCheckersData(leaf.getState());
+        CheckersMove[] possibleMoves = legalMoves();
+        // If no legal moves, this is a terminal state
+        if (possibleMoves == null || possibleMoves.length == 0)
+        {
+            return leaf;
+        }
+        for(CheckersMove move : possibleMoves)
+        {
+            CheckersData childBoard = board.clone();
+            childBoard.makeMove(move);
+            MCNode<CheckersData> child = new MCNode<>(childBoard, move, leaf);
+            leaf.addChild(child);
+        }
+        ArrayList<MCNode<CheckersData>> childrenList = leaf.getChildren();
+        return childrenList.get(rand.nextInt(childrenList.size()));
+    }
 
-        for (CheckersMove move : possibleMoves) {
-            // Check if the move has already been expanded
-            boolean found = false;
-            for (MCNode<CheckersData> child : node.getChildren()) {
-                if (child.getMove().equals(move)) {
-                    found = true;
-                    break;
+    // playout from child, returns winner's int player value
+    private int simulate(MCNode<CheckersData> child)
+    {
+        int currentPlayer = CheckersData.BLACK;
+        CheckersData childBoard = board.clone();
+        while(true)
+        {
+            CheckersMove[] possibleMoves = childBoard.getLegalMoves(currentPlayer);
+            if (possibleMoves == null || possibleMoves.length == 0)
+            {
+                if (currentPlayer == CheckersData.BLACK)
+                {
+                    return CheckersData.RED;
+                }
+                else
+                {
+                    return CheckersData.BLACK;
                 }
             }
-
-            // Expand a new child if the move hasn't been tried
-            if (!found) {
-                CheckersData newState = node.getState().clone();
-                newState.makeMove(move); // Apply the move to get the new state
-                return node.addChild(newState, move);
+            CheckersMove randomMove = possibleMoves[rand.nextInt(possibleMoves.length)];
+            childBoard.makeMove(randomMove);
+            if (currentPlayer == CheckersData.BLACK)
+            {
+                currentPlayer = CheckersData.RED;
+            }
+            else
+            {
+                currentPlayer = CheckersData.BLACK;
             }
         }
-
-        return node; // If fully expanded, return the node itself
     }
+
+    private void backpropagate(MCNode<CheckersData> child, int winner)
+    {
+        MCNode<CheckersData> node = child;
+        while (node != null)
+        {
+            node.incrementPlayoutCount();
+            if(winner == CheckersData.BLACK)
+            {
+                node.incrementWinCount();;
+            }
+            node = node.getParent();
+        }
+    }
+
+    private CheckersMove bestMove(MCNode<CheckersData> root)
+    {
+        MCNode<CheckersData> bestChild = null;
+        double mostPlayouts = 0.0;
+
+        for(MCNode<CheckersData> child : root.getChildren())
+        {
+            double childPlayouts = child.getNumOfPlayouts();
+            if(childPlayouts > mostPlayouts)
+            {
+                mostPlayouts = childPlayouts;
+                bestChild = child;
+            }
+        }
+        return bestChild.getMove();
+    }
+
+
 
 
     // TODO

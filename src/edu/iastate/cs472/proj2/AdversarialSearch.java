@@ -20,13 +20,13 @@ public abstract class AdversarialSearch {
     }
     
     /** 
-     *
+     * Agent is Black
      * @return an array of valid moves
      */
-    protected CheckersMove[] legalMoves(int player)
+    protected CheckersMove[] legalMoves()
     {
         if (board == null) { return null; }
-        return board.getLegalMoves(player);
+        return board.getLegalMoves(CheckersData.BLACK);
     }
 	
     /**

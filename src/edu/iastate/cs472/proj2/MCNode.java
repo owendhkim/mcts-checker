@@ -10,7 +10,7 @@ public class MCNode<CheckersData> {
     private CheckersData state;
     private CheckersMove move; // The move that led to this state
     private MCNode<CheckersData> parent; // Reference to the parent node
-    private List<MCNode<CheckersData>> children; // List of child nodes
+    private ArrayList<MCNode<CheckersData>> children; // List of child nodes
 
     private int playouts; // Number of times this node has been visited
     private int wins; // Number of wins observed through this node
@@ -38,7 +38,7 @@ public class MCNode<CheckersData> {
         return parent;
     }
 
-    public List<MCNode<CheckersData>> getChildren() {
+    public ArrayList<MCNode<CheckersData>> getChildren() {
         return children;
     }
 
@@ -51,13 +51,17 @@ public class MCNode<CheckersData> {
     }
 
     // Increment visit count
-    public void incrementVisitCount() {
+    public void incrementPlayoutCount() {
         playouts++;
     }
 
     // Increment win count
     public void incrementWinCount() {
         wins++;
+    }
+
+    public boolean isLeaf() {
+        return children.isEmpty();
     }
 
     // Calculate UCT (Upper Confidence Bound for Trees) score for this node
@@ -71,43 +75,8 @@ public class MCNode<CheckersData> {
     }
 
     // Add a child node
-    public MCNode<CheckersData> addChild(CheckersData childState, CheckersMove childMove) {
-        MCNode<CheckersData> childNode = new MCNode<>(childState, childMove, this);
-        children.add(childNode);
-        return childNode;
-    }
-
-    // Check if the node is fully expanded
-    public boolean isFullyExpanded(List<CheckersMove> possibleMoves) {
-        if (children.size() >= possibleMoves.size()) {
-            return true;
-        }
-        for (CheckersMove move : possibleMoves) {
-            boolean found = false;
-            for (MCNode<CheckersData> child : children) {
-                if (child.getMove().equals(move)) {
-                    found = true;
-                    break;
-                }
-            }
-            if (!found) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    // Select child with max UCT score
-    public MCNode<CheckersData> getChildWithMaxUCT() {
-        MCNode<CheckersData> bestChild = null;
-        double bestScore = Double.NEGATIVE_INFINITY;
-        for (MCNode<CheckersData> child : children) {
-            double uctScore = child.getUCTScore();
-            if (uctScore > bestScore) {
-                bestScore = uctScore;
-                bestChild = child;
-            }
-        }
-        return bestChild;
+    public MCNode<CheckersData> addChild(MCNode<CheckersData> child) {
+        children.add(child);
+        return child;
     }
 }
