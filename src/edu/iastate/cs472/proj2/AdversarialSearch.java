@@ -20,12 +20,13 @@ public abstract class AdversarialSearch {
     }
     
     /** 
-     * 
+     *
      * @return an array of valid moves
      */
-    protected CheckersMove[] legalMoves() {
-    	// TODO
-    	return null; 
+    protected CheckersMove[] legalMoves(int player)
+    {
+        if (board == null) { return null; }
+        return board.getLegalMoves(player);
     }
 	
     /**

@@ -9,8 +9,8 @@ import java.util.ArrayList;
  * while BLACK moves "down" the board (i.e. row number increases).
  * Methods are provided to return lists of available legal moves.
  */
-public class CheckersData {
-
+public class CheckersData implements Cloneable
+{
   /*  The following constants represent the possible contents of a square
       on the board.  The constants RED and BLACK also represent players
       in the game. */
@@ -47,7 +47,7 @@ public class CheckersData {
             sb.append(8 - i).append(" ");
             for (int n : row) {
                 if (n == 0) {
-                    sb.append(" ");
+                    sb.append("0");
                 } else if (n == 1) {
                     sb.append(ANSI_RED + "R" + ANSI_RESET);
                 } else if (n == 2) {
@@ -74,46 +74,46 @@ public class CheckersData {
      * and all such squares in the last three rows contain red squares.
      */
     void setUpGame() {
-//        // Empties board
-//        for(int i = 0; i < 8; i++)
-//        {
-//            for(int j = 0; j < 8; j++)
-//            {
-//                board[i][j] = 0;
-//            }
-//        }
-//        // Places black mens
-//        for(int i = 0; i < 3; i++)
-//        {
-//            for(int j = 0; j < 8; j++)
-//            {
-//                if(i % 2 == j % 2)
-//                {
-//                    board[i][j] = 3;
-//                }
-//            }
-//        }
-//        // Place red mens
-//        for(int i = 5; i < 8; i++)
-//        {
-//            for(int j = 0; j < 8; j++)
-//            {
-//                if(i % 2 == j % 2)
-//                {
-//                    board[i][j] = 1;
-//                }
-//            }
-//        }
-        board = new int[][]{
-                {0, 0, 0, 0, 0, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0, 0, 0},
-                {3, 0, 0, 0, 0, 0, 0, 0},
-                {0, 1, 0, 0, 0, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0, 0, 0},
-                {0, 1, 0, 1, 0, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0, 0, 0}
-        };
+        // Empties board
+        for(int i = 0; i < 8; i++)
+        {
+            for(int j = 0; j < 8; j++)
+            {
+                board[i][j] = 0;
+            }
+        }
+        // Places black mens
+        for(int i = 0; i < 3; i++)
+        {
+            for(int j = 0; j < 8; j++)
+            {
+                if(i % 2 == j % 2)
+                {
+                    board[i][j] = 3;
+                }
+            }
+        }
+        // Place red mens
+        for(int i = 5; i < 8; i++)
+        {
+            for(int j = 0; j < 8; j++)
+            {
+                if(i % 2 == j % 2)
+                {
+                    board[i][j] = 1;
+                }
+            }
+        }
+//        board = new int[][]{
+//                {0, 0, 0, 0, 0, 0, 0, 0},
+//                {0, 0, 0, 0, 0, 1, 0, 0},
+//                {4, 0, 1, 0, 1, 0, 0, 0},
+//                {0, 2, 0, 2, 0, 2, 0, 0},
+//                {0, 0, 1, 0, 1, 0, 0, 0},
+//                {0, 1, 0, 0, 0, 0, 0, 0},
+//                {0, 0, 0, 0, 0, 0, 0, 0},
+//                {0, 0, 0, 0, 0, 0, 0, 0}
+//        };
     }
 
 
@@ -153,8 +153,6 @@ public class CheckersData {
      * @param toCol   column index of the to square
      */
     void makeMove(int fromRow, int fromCol, int toRow, int toCol) {
-        // TODO
-    	// 
     	// Update the board for the given move. You need to take care of the following situations:
         // 1. move the piece from (fromRow,fromCol) to (toRow,toCol)
         // 2. if this move is a jump, remove the captured piece
@@ -199,11 +197,65 @@ public class CheckersData {
      * @param player color of the player, RED or BLACK
      */
     CheckersMove[] getLegalMoves(int player) {
-        // TODO
-        if(player == RED)
-        {
+        ArrayList<CheckersMove> jumpMoves = new ArrayList<>();
+        ArrayList<CheckersMove> singleMoves = new ArrayList<>();
 
+        // return null if invalid player value passed in
+        if(player != RED && player != BLACK)
+        {
+            return null;
         }
+
+        // loop through board and find corresponding man to call find legal jumps
+        for(int row = 0; row < 8; row++)
+        {
+            for(int col = 0; col < 8; col++)
+            {
+                if(board[row][col] == player || board[row][col] == player + 1)
+                {
+                    CheckersMove[] jumps = getLegalJumpsFrom(board[row][col], row, col);
+                    if(jumps != null)
+                    {
+                        for(CheckersMove jump : jumps)
+                        {
+                            jumpMoves.add(jump);
+                        }
+                    }
+                }
+            }
+        }
+        // if jump moves found, return jump moves
+        if(!jumpMoves.isEmpty())
+        {
+            return jumpMoves.toArray(new CheckersMove[0]);
+        }
+        // if no jump moves, get single moves
+        else
+        {
+            for(int row = 0; row < 8; row++)
+            {
+                for(int col = 0; col < 8; col++)
+                {
+                    if(board[row][col] == player || board[row][col] == player + 1)
+                    {
+                        CheckersMove[] singles = getLegalSingleMoves(board[row][col], row, col);
+                        if(singles != null)
+                        {
+                            for(CheckersMove single : singles)
+                            {
+                                singleMoves.add(single);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        // if single moves found, return single moves
+        if(!singleMoves.isEmpty())
+        {
+            return singleMoves.toArray(new CheckersMove[0]);
+        }
+        // if no moves found, return null
         return null;
     }
 
@@ -223,7 +275,6 @@ public class CheckersData {
      * @param col    col index of the start square.
      */
     CheckersMove[] getLegalJumpsFrom(int player, int row, int col) {
-        // TODO
         ArrayList<CheckersMove> allJumps = new ArrayList<>();
         CheckersMove currentMove = new CheckersMove();
         currentMove.addMove(row, col);
@@ -246,6 +297,52 @@ public class CheckersData {
         }
 
         return validJumps.toArray(new CheckersMove[0]);
+    }
+
+    /**
+     * Return a list of the legal jumps that the specified player can
+     * make starting from the specified row and column.  If no such
+     * jumps are possible, null is returned.  The logic is similar
+     * to the logic of the getLegalMoves() method.
+     *
+     * Note that each CheckerMove may contain multiple jumps.
+     * Each move returned in the array represents a sequence of jumps
+     * until no further jump is allowed.
+     *
+     * @param player The player of the current jump, either RED or BLACK.
+     * @param fromRow    row index of the start square.
+     * @param fromCol    col index of the start square.
+     */
+    CheckersMove[] getLegalSingleMoves(int player, int fromRow, int fromCol) {
+        ArrayList<CheckersMove> singleMoves = new ArrayList<>();
+        int[][] moveDirections;
+        if(player == RED_KING || player == BLACK_KING)
+        {
+            moveDirections = new int[][] {{-1,-1}, {-1, 1}, {1, -1}, {1, 1}};
+        }
+        else if(player == RED)
+        {
+            moveDirections = new int[][] {{-1,-1}, {-1, 1}};
+        }
+        else
+        {
+            moveDirections = new int[][] {{1, -1}, {1, 1}};
+        }
+
+        for(int[] dir : moveDirections)
+        {
+            int toRow = fromRow + dir[0];
+            int toCol = fromCol + dir[1];
+            if(isWithinBounds(toRow, toCol) && board[toRow][toCol] == EMPTY)
+            {
+                CheckersMove currentMove = new CheckersMove(fromRow, fromCol, toRow, toCol);
+                singleMoves.add(currentMove);
+            }
+        }
+        if (singleMoves.isEmpty()) {
+            return null; // No jumps available
+        }
+        return singleMoves.toArray(new CheckersMove[0]);
     }
 
     /**
@@ -288,6 +385,7 @@ public class CheckersData {
                 int midMan = board[midRow][midCol];
                 if(isOppPiece(player, midMan) && board[toRow][toCol] == EMPTY)
                 {
+                    canJump = true;
                     makeMove(fromRow, fromCol, toRow, toCol);
                     currentMove.addMove(toRow, toCol);
                     findJumps(player, toRow, toCol, currentMove.clone(), allJumps);
@@ -325,6 +423,24 @@ public class CheckersData {
     private boolean isWithinBounds(int row, int col)
     {
         return row >= 0 && row < 8 && col >= 0 && col < 8;
+    }
+
+    public CheckersData clone() {
+        try {
+            // Create a shallow copy of the CheckersData instance
+            CheckersData cloned = (CheckersData) super.clone();
+
+            // Deep copy the board array
+            cloned.board = new int[board.length][];
+            for (int i = 0; i < board.length; i++) {
+                cloned.board[i] = board[i].clone(); // Clone each row
+            }
+
+            // Return the cloned instance
+            return cloned;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError("Cloning failed", e); // Should never happen since we implement Cloneable
+        }
     }
 
 }

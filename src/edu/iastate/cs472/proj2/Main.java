@@ -8,15 +8,24 @@ public class Main {
 
         System.out.println(game.toString());
 
-        // Example: Get all jump moves for BLACK from position (2, 1)
         int player = CheckersData.BLACK;
         int row = 2;
         int col = 0;
 
-        CheckersMove[] jumps = game.getLegalJumpsFrom(player, row, col);
+        String color = "";
+        if(player == 1)
+        {
+            color = "RED";
+        }
+        else if(player == 3)
+        {
+            color = "BLACK";
+        }
+
+        CheckersMove[] jumps = game.getLegalMoves(player);
 
         if (jumps != null) {
-            System.out.println("\nLegal Jumps for BLACK from (2,0):");
+            System.out.printf("\nLegal Jumps for %s from (%d,%d):\n", color, row, col);
             for (CheckersMove move : jumps) {
                 System.out.print("Move Sequence: ");
                 for (int i = 0; i < move.rows.size(); i++) {
@@ -25,7 +34,7 @@ public class Main {
                 System.out.println();
             }
         } else {
-            System.out.println("\nNo legal jumps available for BLACK from (2,1).");
+            System.out.printf("\nNo legal Jumps for %s from (%d,%d) available:\n", color, row, col);
         }
     }
 }

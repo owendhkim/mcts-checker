@@ -10,8 +10,9 @@ package edu.iastate.cs472.proj2;
  * This class implements the Monte Carlo tree search method to find the best
  * move at the current state.
  */
-public class MonteCarloTreeSearch extends AdversarialSearch {
-
+public class MonteCarloTreeSearch extends AdversarialSearch
+{
+    private static final int NUM_ITERATIONS = 1000;
 	/**
      * The input parameter legalMoves contains all the possible moves.
      * It contains four integers:  fromRow, fromCol, toRow, toCol
@@ -36,14 +37,63 @@ public class MonteCarloTreeSearch extends AdversarialSearch {
         // 4 - black king
         System.out.println(board);
         System.out.println();
+        if (legalMoves == null || legalMoves.length == 0) {
+            return null; // No legal moves available
+        }
+        MCNode<CheckersData> rootNode = new MCNode<>(board.clone(), null, null);
+        for (int i = 0; i < NUM_ITERATIONS; i++) {
+            // Step 1: Selection - Start from root and select a promising node
+            MCNode<CheckersData> selectedNode = select(rootNode);
 
-        // TODO 
-        
-        // Return the move for the current state.
-        // Here, we simply return the first legal move for demonstration.
-        return legalMoves[0];
+            // Step 2: Expansion - Add a child node for an untried move
+            MCNode<CheckersData> expandedNode = expand(selectedNode);
+
+            // Step 3: Simulation - Perform a random playout from the expanded node
+            boolean simulationResult = simulate(expandedNode);
+
+            // Step 4: Backpropagation - Update statistics along the path
+            backpropagate(expandedNode, simulationResult);
+        }
+
+        // After all iterations, return the best move based on visit count or win rate
+        return bestMove(rootNode);
     }
-    
+
+    private MCNode<CheckersData> select(MCNode<CheckersData> node)
+    {
+        while (!node.getChildren().isEmpty() && node.isFullyExpanded(legalMoves(node.getState())))
+        {
+            node = node.getChildWithMaxUCT();
+        }
+        return node; // Return a node that is either a leaf or not fully expanded
+    }
+
+    private MCNode<CheckersData> expand(MCNode<CheckersData> node) {
+        // Get all possible legal moves from this node’s state
+        CheckersMove[] possibleMoves = legalMoves(node.getState());
+
+        for (CheckersMove move : possibleMoves) {
+            // Check if the move has already been expanded
+            boolean found = false;
+            for (MCNode<CheckersData> child : node.getChildren()) {
+                if (child.getMove().equals(move)) {
+                    found = true;
+                    break;
+                }
+            }
+
+            // Expand a new child if the move hasn't been tried
+            if (!found) {
+                CheckersData newState = node.getState().clone();
+                newState.makeMove(move); // Apply the move to get the new state
+                return node.addChild(newState, move);
+            }
+        }
+
+        return node; // If fully expanded, return the node itself
+    }
+
+
     // TODO
     // 
     // Implement your helper methods here. They include at least the methods for selection,  
