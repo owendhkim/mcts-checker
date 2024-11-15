@@ -104,16 +104,6 @@ public class CheckersData implements Cloneable
                 }
             }
         }
-//        board = new int[][]{
-//                {0, 0, 0, 0, 0, 0, 0, 0},
-//                {0, 0, 0, 0, 0, 1, 0, 0},
-//                {4, 0, 1, 0, 1, 0, 0, 0},
-//                {0, 2, 0, 2, 0, 2, 0, 0},
-//                {0, 0, 1, 0, 1, 0, 0, 0},
-//                {0, 1, 0, 0, 0, 0, 0, 0},
-//                {0, 0, 0, 0, 0, 0, 0, 0},
-//                {0, 0, 0, 0, 0, 0, 0, 0}
-//        };
     }
 
 
@@ -429,13 +419,11 @@ public class CheckersData implements Cloneable
         try {
             // Create a shallow copy of the CheckersData instance
             CheckersData cloned = (CheckersData) super.clone();
-
             // Deep copy the board array
             cloned.board = new int[board.length][];
             for (int i = 0; i < board.length; i++) {
                 cloned.board[i] = board[i].clone(); // Clone each row
             }
-
             // Return the cloned instance
             return cloned;
         } catch (CloneNotSupportedException e) {

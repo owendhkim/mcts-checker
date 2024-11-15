@@ -46,21 +46,21 @@ public class MonteCarloTreeSearch extends AdversarialSearch
             return null; // No legal moves available
         }
         MCNode<CheckersData> root = new MCNode<>(board.clone(), null, null);
-        for (int i = 0; i < 5; i++) {
-            // Step 1: Selection - Start from root and select a promising node
+        for (int i = 0; i < NUM_ITERATIONS; i++) {
+            // Step 1: Selection - Select leaf with best UCT score
             MCNode<CheckersData> leaf = select(root);
 
-            // Step 2: Expansion - Add a child node for an untried move
+            // Step 2: Expansion - Expand children of leaf and pick random child,
             MCNode<CheckersData> child = expand(leaf);
 
-            // Step 3: Simulation - Perform a random playout from the expanded node
+            // Step 3: Simulation - Perform a random playout from child
             int simulationResult = simulate(child);
 
-            // Step 4: Backpropagation - Update statistics along the path
+            // Step 4: Backpropagation - Update playouts/wins traversing up to root
             backpropagate(child, simulationResult);
         }
 
-        // After all iterations, return the best move based on visit count or win rate
+        // return the move with highest number of playouts
         return bestMove(root);
     }
 
@@ -70,7 +70,7 @@ public class MonteCarloTreeSearch extends AdversarialSearch
         {
             return node;
         }
-        double bestUCT = 0.0;
+        double bestUCT = Double.NEGATIVE_INFINITY;
         MCNode<CheckersData> bestChild = null;
         for(MCNode<CheckersData> child : node.getChildren())
         {
@@ -154,7 +154,7 @@ public class MonteCarloTreeSearch extends AdversarialSearch
     private CheckersMove bestMove(MCNode<CheckersData> root)
     {
         MCNode<CheckersData> bestChild = null;
-        double mostPlayouts = 0.0;
+        double mostPlayouts = Double.NEGATIVE_INFINITY;
 
         for(MCNode<CheckersData> child : root.getChildren())
         {
@@ -167,19 +167,4 @@ public class MonteCarloTreeSearch extends AdversarialSearch
         }
         return bestChild.getMove();
     }
-
-
-
-
-    // TODO
-    // 
-    // Implement your helper methods here. They include at least the methods for selection,  
-    // expansion, simulation, and back-propagation. 
-    // 
-    // For representation of the search tree, you are suggested (but limited) to use a 
-    // child-sibling tree already implemented in the two classes CSTree and CSNode (which  
-    // you may feel free to modify).  If you decide not to use the child-sibling tree, simply 
-    // remove these two classes. 
-    // 
-
 }
