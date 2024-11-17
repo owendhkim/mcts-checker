@@ -12,8 +12,8 @@ public class MCNode<CheckersData> {
     private MCNode<CheckersData> parent; // Reference to the parent node
     private ArrayList<MCNode<CheckersData>> children; // List of child nodes
 
-    private int playouts; // Number of times this node has been visited
-    private int wins; // Number of wins observed through this node
+    private double playouts; // Number of times this node has been visited
+    private double wins; // Number of wins observed through this node
 
     // Constructor
     public MCNode(CheckersData state, CheckersMove move, MCNode<CheckersData> parent) {
@@ -42,11 +42,11 @@ public class MCNode<CheckersData> {
         return children;
     }
 
-    public int getNumOfPlayouts() {
+    public double getNumOfPlayouts() {
         return playouts;
     }
 
-    public int getNumOfWins() {
+    public double getNumOfWins() {
         return wins;
     }
 
@@ -56,8 +56,8 @@ public class MCNode<CheckersData> {
     }
 
     // Increment win count
-    public void incrementWinCount() {
-        wins++;
+    public void incrementWinCount(double value) {
+        wins+=value;
     }
 
     public boolean isLeaf() {

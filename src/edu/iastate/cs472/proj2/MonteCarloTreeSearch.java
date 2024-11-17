@@ -8,7 +8,7 @@ package edu.iastate.cs472.proj2;
 
 import java.util.ArrayList;
 import java.util.Random;
-
+import java.util.HashMap;
 
 /**
  * This class implements the Monte Carlo tree search method to find the best
@@ -18,6 +18,7 @@ public class MonteCarloTreeSearch extends AdversarialSearch
 {
     private static final int NUM_ITERATIONS = 1000;
     Random rand = new Random();
+    public HashMap<CheckersData, Integer> pastMoves = new HashMap<>();
     /**
      * The input parameter legalMoves contains all the possible moves.
      * It contains four integers:  fromRow, fromCol, toRow, toCol
@@ -50,7 +51,7 @@ public class MonteCarloTreeSearch extends AdversarialSearch
             // Step 1: Selection - Select leaf with best UCT score
             MCNode<CheckersData> leaf = select(root);
 
-            // Step 2: Expansion - Expand children of leaf and pick random child,
+            // Step 2: Expansion - Expand children of leaf and pick random child
             MCNode<CheckersData> child = expand(leaf);
 
             // Step 3: Simulation - Perform a random playout from child
@@ -105,7 +106,7 @@ public class MonteCarloTreeSearch extends AdversarialSearch
         return childrenList.get(rand.nextInt(childrenList.size()));
     }
 
-    // playout from child, returns winner's int player value
+    // playout from child, returns winner's int player value, 0 if draw
     private int simulate(MCNode<CheckersData> child)
     {
         int currentPlayer = CheckersData.BLACK;
@@ -124,8 +125,23 @@ public class MonteCarloTreeSearch extends AdversarialSearch
                     return CheckersData.BLACK;
                 }
             }
+
+            // draw check condition
             CheckersMove randomMove = possibleMoves[rand.nextInt(possibleMoves.length)];
             childBoard.makeMove(randomMove);
+            if(pastMoves.containsKey(childBoard))
+            {
+                pastMoves.put(childBoard, pastMoves.get(childBoard) + 1);
+            }
+            else
+            {
+                pastMoves.put(childBoard, 1);
+            }
+            if(pastMoves.get(childBoard) == 3)
+            {
+                return 0;
+            }
+
             if (currentPlayer == CheckersData.BLACK)
             {
                 currentPlayer = CheckersData.RED;
@@ -142,10 +158,17 @@ public class MonteCarloTreeSearch extends AdversarialSearch
         MCNode<CheckersData> node = child;
         while (node != null)
         {
+            // increment playout count for all nodes
             node.incrementPlayoutCount();
+            // if agent is winner, increment win count
             if(winner == CheckersData.BLACK)
             {
-                node.incrementWinCount();;
+                node.incrementWinCount(1);
+            }
+            // if draw increment wincount by 0.5
+            else if(winner == 0)
+            {
+                node.incrementWinCount(0.5);
             }
             node = node.getParent();
         }
